@@ -1,13 +1,18 @@
 import React, { useState } from "react";
 import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { useDispatch, useSelector } from "react-redux";
+import toast, { Toaster } from "react-hot-toast";
 
 import { app } from "firebaseConfig";
 import Button from "components/Button/Button";
+import { signUp } from "slices/authSlice";
 
 function SignUp() {
   const auth = getAuth(app);
   const provider = new GoogleAuthProvider();
   const [isLoading, setIsLoading] = useState(false);
+  const dispatch = useDispatch();
+  useSelector((state) => console.log(state.authState));
 
   function signUpHandler() {
     setIsLoading(true);
@@ -19,24 +24,31 @@ function SignUp() {
         const token = credential.accessToken;
         // The signed-in user info.
         const user = result.user;
-        console.log(user);
+
+        dispatch(
+          signUp({
+            accessToken: user?.accessToken,
+            displayName: user?.displayName,
+            email: user?.email,
+            photoURL: user?.photoURL,
+            uid: user?.uid,
+            googleAccessToken: credential?.accessToken,
+          })
+        );
       })
       .catch((error) => {
-        // Handle Errors here.
-        const errorCode = error.code;
-        const errorMessage = error.message;
-        // The email of the user's account used.
-        const email = error.customData.email;
-        // The AuthCredential type that was used.
-        const credential = GoogleAuthProvider.credentialFromError(error);
-        // ...
+        setIsLoading(false);
+        toast.error(error.message);
       });
   }
 
   return (
-    <Button inverted color="red" loading={isLoading} onClick={signUpHandler}>
-      Sign Up
-    </Button>
+    <>
+      <Toaster position="top-right" />
+      <Button inverted color="red" loading={isLoading} onClick={signUpHandler}>
+        Sign Up
+      </Button>
+    </>
   );
 }
 
