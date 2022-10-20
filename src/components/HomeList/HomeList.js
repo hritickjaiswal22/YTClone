@@ -1,10 +1,12 @@
 import React, { useEffect, useRef, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 
 import { Grid, DummyBox } from "./HomeList.style";
 import VideoItem from "components/VideoItem/VideoItem";
 
 function HomeList({ videos, getNewVideos }) {
   const endRef = useRef();
+  const navigate = useNavigate();
 
   const handleObserver = useCallback((entries) => {
     const target = entries[0];
@@ -23,22 +25,25 @@ function HomeList({ videos, getNewVideos }) {
     if (endRef.current) observer.observe(endRef.current);
   }, [handleObserver]);
 
+  function selectHandler(e) {
+    const videoId =
+      e.target.parentElement.parentElement.getAttribute("data-videoid");
+
+    if (videoId) navigate(`/watch/${videoId}`);
+  }
+
   return (
     <>
-      <Grid>
+      <Grid onClick={selectHandler}>
         {videos.map((video) => (
           <VideoItem
             key={typeof video.id === "string" ? video.id : video?.id?.videoId}
             {...video}
           />
         ))}
-        {/* <DummyBox />
-        <DummyBox />
-        <DummyBox />
-        <DummyBox />
-        <DummyBox />
-        <DummyBox /> */}
-        <div id="end" ref={endRef}></div>
+        <div id="end" ref={endRef}>
+          Loading
+        </div>
       </Grid>
     </>
   );

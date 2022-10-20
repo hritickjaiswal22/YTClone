@@ -15,12 +15,16 @@ function VideoItem({
 }) {
   if (channelTitle || thumbnail || title || views)
     return (
-      <Card>
+      <Card data-videoid={id}>
         <Image src={thumbnail} wrapped ui={false} />
         <Card.Content>
           <Card.Header>{`${title.substring(0, 30)}...`}</Card.Header>
           <Card.Meta>{channelTitle}</Card.Meta>
-          <Card.Meta>{`${Math.floor(views / 1000)}k views`}</Card.Meta>
+          {views ? (
+            <Card.Meta>{`${Math.floor(views / 1000)}k views`}</Card.Meta>
+          ) : (
+            ""
+          )}
         </Card.Content>
       </Card>
     );

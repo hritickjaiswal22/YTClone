@@ -6,4 +6,5 @@ export const StyledCard = styled(Card)`
   min-height: 285px !important;
   background: none !important;
   box-shadow: none !important;
+  cursor: pointer;
 `;

@@ -6,6 +6,7 @@ const initialState = {
   loading: false,
   selectedCategory: "popular",
   nextPageToken: null,
+  error: null,
 };
 
 function processData(obj) {
@@ -18,6 +19,7 @@ function processData(obj) {
     temp.description = video?.snippet?.description;
     temp.title = video?.snippet?.title;
     temp.thumbnail = video?.snippet?.thumbnails?.medium?.url;
+    temp.views = video?.statistics?.viewCount;
 
     return temp;
   });
@@ -26,25 +28,29 @@ function processData(obj) {
 export const getVideos = createAsyncThunk(
   "videos/getVideos",
   async (userId, thunkAPI) => {
-    let fetchedData;
-    if (thunkAPI.getState().videosState?.selectedCategory === "popular")
-      fetchedData = await getPopularVidoes(
-        thunkAPI.getState().videosState?.nextPageToken
-      );
-    else
-      fetchedData = await getVideosByCategory(
-        thunkAPI.getState().videosState?.selectedCategory,
-        thunkAPI.getState().videosState?.nextPageToken
-      );
-    let videos = processData(fetchedData);
-    videos = [...thunkAPI.getState().videosState?.videos, ...videos];
+    try {
+      let fetchedData;
+      if (thunkAPI.getState().videosState?.selectedCategory === "popular")
+        fetchedData = await getPopularVidoes(
+          thunkAPI.getState().videosState?.nextPageToken
+        );
+      else
+        fetchedData = await getVideosByCategory(
+          thunkAPI.getState().videosState?.selectedCategory,
+          thunkAPI.getState().videosState?.nextPageToken
+        );
+      let videos = processData(fetchedData);
+      videos = [...thunkAPI.getState().videosState?.videos, ...videos];
 
-    const { nextPageToken } = fetchedData?.data;
+      const { nextPageToken } = fetchedData?.data;
 
-    return {
-      nextPageToken,
-      videos,
-    };
+      return {
+        nextPageToken,
+        videos,
+      };
+    } catch (error) {
+      return thunkAPI.rejectWithValue(error);
+    }
   }
 );
 
@@ -62,13 +68,16 @@ export const counterSlice = createSlice({
   extraReducers: (builder) => {
     // Add reducers for additional action types here, and handle loading state as needed
     builder.addCase(getVideos.rejected, (state, action) => {
+      console.log(action.payload);
       state.loading = false;
+      state.error = action.payload;
     });
 
     builder.addCase(getVideos.fulfilled, (state, action) => {
       state.loading = false;
       state.nextPageToken = action.payload.nextPageToken;
       state.videos = action.payload.videos;
+      state.error = null;
     });
   },
 });
